@@ -14,6 +14,9 @@ The spirecomm package facilitates communicating with Slay the Spire through Comm
 
 https://github.com/ForgottenArbiter/spirecomm
 
+# Progress
+Network and parameters currently under tuning and training, aiming for a 30% winrate, will update results here.
+
 # Requirements:
 
 - Python 3.5+
