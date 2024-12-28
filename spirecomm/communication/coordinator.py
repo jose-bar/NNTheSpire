@@ -105,10 +105,11 @@ class Coordinator:
 
     def execute_next_action_if_ready(self):
         """Immediately execute the next action in the action queue, if ready to do so
-
         :return: None
         """
-        if len(self.action_queue) > 0 and self.action_queue[0].can_be_executed(self):
+        if (len(self.action_queue) > 0 and 
+            self.action_queue[0] is not None and 
+            self.action_queue[0].can_be_executed(self)):
             self.execute_next_action()
 
     def register_state_change_callback(self, new_callback):

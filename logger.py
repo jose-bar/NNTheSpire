@@ -18,21 +18,19 @@ class GameStateLogger:
     @staticmethod
     def log_game_state(game_state: Game):
         """Log detailed information about the current game state"""
+        if game_state is None:
+            logger.error("Game state is None. Cannot log game state.")
+            return
+
         logger.info("\n=== GAME STATE ===")
-        logger.info(f"Screen Type: {game_state.screen_type}")
-        # logger.info(f"Room Type: {game_state.room_type}")
-        # logger.info(f"Floor: {game_state.floor}")
-        # logger.info(f"Act: {game_state.act}")
-        # logger.info(f"Current HP: {game_state.current_hp}/{game_state.max_hp}")
-        # logger.info(f"Gold: {game_state.gold}")
-        # logger.info(f"In Combat: {game_state.in_combat}")
+        logger.info(f"Screen Type: {getattr(game_state, 'screen_type', 'Unknown')}")
         
         GameStateLogger._log_available_actions(game_state)
-        
-        if game_state.in_combat:
+
+        if getattr(game_state, 'in_combat', False):
             GameStateLogger._log_combat_state(game_state)
         
-        if game_state.screen_type == ScreenType.SHOP_SCREEN:
+        if getattr(game_state, 'screen_type', None) == ScreenType.SHOP_SCREEN:
             GameStateLogger._log_shop_info(game_state)
             
         logger.info("=== END GAME STATE ===\n")
@@ -41,11 +39,11 @@ class GameStateLogger:
     def _log_available_actions(game_state: Game):
         """Log available actions"""
         logger.info("\nAvailable Actions:")
-        logger.info(f"- Proceed available: {game_state.proceed_available}")
-        logger.info(f"- Cancel available: {game_state.cancel_available}")
-        logger.info(f"- Choice available: {game_state.choice_available}")
+        logger.info(f"- Proceed available: {getattr(game_state, 'proceed_available', False)}")
+        logger.info(f"- Cancel available: {getattr(game_state, 'cancel_available', False)}")
+        logger.info(f"- Choice available: {getattr(game_state, 'choice_available', False)}")
         
-        if game_state.choice_available and hasattr(game_state, 'choice_list'):
+        if getattr(game_state, 'choice_available', False) and hasattr(game_state, 'choice_list'):
             logger.info("\nAvailable Choices:")
             for i, choice in enumerate(game_state.choice_list):
                 logger.info(f"  {i}: {choice}")
@@ -53,35 +51,46 @@ class GameStateLogger:
     @staticmethod
     def _log_combat_state(game_state: Game):
         """Log combat-specific information"""
+        if not hasattr(game_state, 'player') or not hasattr(game_state, 'monsters'):
+            logger.error("Combat state logging failed: missing player or monsters.")
+            return
+
         logger.info("\nCombat State:")
-        logger.info(f"Player Block: {game_state.player.block}")
-        logger.info(f"Player Energy: {game_state.player.energy}")
+        player = game_state.player
+        logger.info(f"Player Block: {getattr(player, 'block', 0)}")
+        logger.info(f"Player Energy: {getattr(player, 'energy', 0)}")
+
         logger.info("\nMonsters:")
-        for i, monster in enumerate(game_state.monsters):
-            logger.info(f"  Monster {i+1}: {monster.name}")
-            logger.info(f"    HP: {monster.current_hp}/{monster.max_hp}")
-            logger.info(f"    Block: {monster.block}")
-            logger.info(f"    Intent: {monster.intent}")
-            logger.info(f"    Is Gone: {monster.is_gone}")
+        for i, monster in enumerate(getattr(game_state, 'monsters', [])):
+            logger.info(f"  Monster {i+1}: {getattr(monster, 'name', 'Unknown')}")
+            logger.info(f"    HP: {getattr(monster, 'current_hp', 0)}/{getattr(monster, 'max_hp', 0)}")
+            logger.info(f"    Block: {getattr(monster, 'block', 0)}")
+            logger.info(f"    Intent: {getattr(monster, 'intent', 'Unknown')}")
+            logger.info(f"    Is Gone: {getattr(monster, 'is_gone', False)}")
 
     @staticmethod
     def _log_shop_info(game_state: Game):
         """Log shop-specific information"""
+        screen = getattr(game_state, 'screen', None)
+        if screen is None:
+            logger.error("Shop screen information missing.")
+            return
+
         logger.info("\nShop Information:")
-        if hasattr(game_state.screen, 'cards'):
+        if hasattr(screen, 'cards'):
             logger.info("Cards for sale:")
-            for card in game_state.screen.cards:
-                logger.info(f"  - {card.name} (Cost: {card.price})")
+            for card in screen.cards:
+                logger.info(f"  - {getattr(card, 'name', 'Unknown')} (Cost: {getattr(card, 'price', 'Unknown')})")
         
-        if hasattr(game_state.screen, 'relics'):
+        if hasattr(screen, 'relics'):
             logger.info("Relics for sale:")
-            for relic in game_state.screen.relics:
-                logger.info(f"  - {relic.name} (Cost: {relic.price})")
+            for relic in screen.relics:
+                logger.info(f"  - {getattr(relic, 'name', 'Unknown')} (Cost: {getattr(relic, 'price', 'Unknown')})")
         
-        if hasattr(game_state.screen, 'purge_available'):
-            logger.info(f"Purge available: {game_state.screen.purge_available}")
-            if game_state.screen.purge_available:
-                logger.info(f"Purge cost: {game_state.screen.purge_cost}")
+        if hasattr(screen, 'purge_available'):
+            logger.info(f"Purge available: {screen.purge_available}")
+            if screen.purge_available:
+                logger.info(f"Purge cost: {getattr(screen, 'purge_cost', 'Unknown')}")
 
     @staticmethod
     def log_shop_visit(visited: bool):
